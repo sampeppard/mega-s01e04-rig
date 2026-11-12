@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { DigestRow, JobStatus, Night, ReadNight } from './types.js';
+import type { DigestRow, JobStatus, Night, ReadNight, StatusCounts } from './types.js';
 
 // Plan morning-digest § 1. Parse at the edge: after this file, rows are trusted types.
 const NIGHT = /^\d{4}-\d{2}-\d{2}$/;
@@ -40,6 +40,7 @@ export const readNight: ReadNight = (runsDir, night) => {
 
   const rows = new Map<string, DigestRow>();
   let badLines = 0;
+  const counts: StatusCounts = { ok: 0, retry: 0, fail: 0 };
 
   for (const raw of text.split('\n')) {
     if (raw.trim() === '') continue; // blank lines (and the final newline) are not bad lines
@@ -48,6 +49,7 @@ export const readNight: ReadNight = (runsDir, night) => {
       badLines += 1;
       continue;
     }
+    counts[line.status] += 1;
     const row = rows.get(line.job);
     if (!row) {
       rows.set(line.job, {
@@ -71,6 +73,6 @@ export const readNight: ReadNight = (runsDir, night) => {
   }
 
   const sorted = [...rows.values()].sort((a, b) => (a.job < b.job ? -1 : a.job > b.job ? 1 : 0));
-  const result: Night = { night, rows: sorted, badLines };
+  const result: Night = { night, rows: sorted, counts, badLines };
   return result;
 };

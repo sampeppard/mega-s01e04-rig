@@ -22,10 +22,14 @@ export type DigestRow = {
   last: string;
 };
 
+// How many valid log lines had each status, whole night. Bad lines are not in here.
+export type StatusCounts = Record<JobStatus, number>;
+
 export type Night = {
   night: string; // YYYY-MM-DD
   // Rows sorted by job. The page and the JSON both use this order (ADR 0001).
   rows: DigestRow[];
+  counts: StatusCounts;
   // Lines that did not parse or did not have the expected fields. Counted, never thrown.
   badLines: number;
 };

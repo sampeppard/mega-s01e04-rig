@@ -7,6 +7,9 @@ export function DigestPage({ night }: { night: Night }) {
   return (
     <>
       <h1>digest · {night.night}</h1>
+      <p class="mute">
+        ok {night.counts.ok} · retry {night.counts.retry} · fail {night.counts.fail}
+      </p>
       {night.rows.length === 0 ? (
         <p class="mute">nothing ran</p>
       ) : (

@@ -38,6 +38,11 @@ describe('readNight', () => {
     expect(backup.lastError).toBe('quota exceeded');
   });
 
+  it('counts log lines by status for the night', () => {
+    expect(readNight('runs', '2026-10-28')!.counts).toEqual({ ok: 10, retry: 4, fail: 1 });
+    expect(readNight('runs', '2026-10-27')!.counts).toEqual({ ok: 7, retry: 0, fail: 0 });
+  });
+
   it('keeps a row whose owner is null', () => {
     const rows = readNight('runs', '2026-10-28')!.rows;
     expect(rows.find((r) => r.job === 'digest/render')!.owner).toBeNull();
@@ -51,7 +56,12 @@ describe('readNight', () => {
 
   it('renders an empty file as no rows', () => {
     const dir = tempRuns({ '2026-01-01.jsonl': '' });
-    expect(readNight(dir, '2026-01-01')).toEqual({ night: '2026-01-01', rows: [], badLines: 0 });
+    expect(readNight(dir, '2026-01-01')).toEqual({
+      night: '2026-01-01',
+      rows: [],
+      counts: { ok: 0, retry: 0, fail: 0 },
+      badLines: 0,
+    });
   });
 
   it('counts lines that parse but miss fields, and does not throw', () => {
