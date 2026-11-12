@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { loadConfig, type RigConfig } from './config.js';
+import { isFlagged } from './digest/flags.js';
 import { readNight } from './digest/reader.js';
 import { lane } from './lane.js';
 import { readStatus } from './status.js';
@@ -35,6 +36,17 @@ export function createApp(config: RigConfig = loadConfig()) {
         <DigestPage night={night} />
       </Layout>,
     );
+  });
+
+  // Same rows, same order, same flag rule as the page (ADR 0001): both read `readNight`.
+  app.get('/api/digest/:night', (c) => {
+    const night = readNight(config.runsDir, c.req.param('night'));
+    if (!night) return c.json({ error: 'no run log for that night' }, 404);
+    return c.json({
+      night: night.night,
+      badLines: night.badLines,
+      rows: night.rows.map((row) => ({ ...row, flagged: isFlagged(row) })),
+    });
   });
 
   return app;
